@@ -1,13 +1,12 @@
-import urllib2
-import urllib
-import httplib
+import http.client
+import urllib.parse
 import json
 
-class zWaveApi(object):
+class zWaveApi3(object):
     '''
     zWave zWay Automation API access
         
-    This is a library for Python 2.7
+    This is a library for Python 3
 
     from https://github.com/topcats/raspberry-zwave-python
 
@@ -38,10 +37,10 @@ class zWaveApi(object):
     def DoLogin(self):
         '''Does the initial authentication before anything else
         Is run only when needed, you do not need to run directly'''
-        post_login = urllib.urlencode({'form': 'true', 'login': self.zlogin_username, 'password': self.zlogin_password, 'keepme': 'false', 'default_ui': 1})
+        post_login = urllib.parse.urlencode({'form': 'true', 'login': self.zlogin_username, 'password': self.zlogin_password, 'keepme': 'false', 'default_ui': 1})
 
         webheaders = {"Content-type": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-        webconn = httplib.HTTPConnection(self.strServer)
+        webconn = http.client.HTTPConnection(self.strServer)
         webconn.request("POST", self.strServerPath+'login', post_login, webheaders)
         webresponse = webconn.getresponse()
         webresponseCookie = webresponse.getheader('set-cookie')#['ZWAYSession']
@@ -56,17 +55,18 @@ class zWaveApi(object):
     def getDevices(self):
         '''Get a list of all zWave Devices
         Return a JSON object of Devices'''
+
         #Double check login
         if (self.zlogin_cookie == ''):
             self.DoLogin()
 
         webheaders = {'Content-type': 'application/json', "Accept": "application/json", "Cookie": "ZWAYSession="+self.zlogin_cookie}
-        webconn = httplib.HTTPConnection(self.strServer)
+        webconn = http.client.HTTPConnection(self.strServer)
         webconn.request("GET", self.strServerPath+'devices?since=0', '', webheaders)
         webresponse = webconn.getresponse()
         webdata = webresponse.read()
         webconn.close()
-        json_obj = json.loads(webdata)
+        json_obj = json.loads(webdata.decode())
         return json_obj['data']['devices']
 
 
@@ -81,7 +81,7 @@ class zWaveApi(object):
         switchMultilevel : on / off / min / max / exact?level=40 / increase / decrease / update
         switchBinary     : on / off / update
         toggleButton     : on
-
+        
         Returns either 0 or 1 if successful'''
 
         #Double check login
@@ -96,14 +96,14 @@ class zWaveApi(object):
 
         #Do Command
         webheaders = {'Content-type': 'application/json', "Accept": "application/json", "Cookie": "ZWAYSession="+self.zlogin_cookie}
-        webconn = httplib.HTTPConnection(self.strServer)
+        webconn = http.client.HTTPConnection(self.strServer)
         webconn.request("GET", self.strServerPath+'devices/'+deviceid+'/command/'+newcommand, '', webheaders)
         webresponse = webconn.getresponse()
         webdata = webresponse.read()
         webconn.close()
 
         #Check Response
-        json_obj = json.loads(webdata)
+        json_obj = json.loads(webdata.decode())
         if (json_obj['code'] == 200):
             return 1
         else:
