@@ -18,7 +18,7 @@ class zWaveApi3(object):
         zPassword - password for API
         zBaseUrl  - full url for the ZAutomation api path
     """
-    
+
     __zlogin_cookie = ''
     __zlogin_username = ''
     __zlogin_password = ''
@@ -69,8 +69,9 @@ class zWaveApi3(object):
             self.__zlogin_cookie = webresponseCookie
             webconn.close()
             return webresponse.status
-        except:
-            self.__zlogin_cookie == ''
+        except Exception as ex:
+            print("ERROR:zWaveApi3.__DoLogin()", ex)
+            self.__zlogin_cookie = ''
             return 0
 
 
@@ -97,7 +98,8 @@ class zWaveApi3(object):
             webconn.close()
             json_obj = json.loads(webdata.decode())
             return json_obj['data']['devices']
-        except:
+        except Exception as ex:
+            print("ERROR:zWaveApi3.getDevices()", ex)
             return []
 
 
@@ -149,5 +151,42 @@ class zWaveApi3(object):
                 return 1
             else:
                 return 0
-        except:
+        except Exception as ex:
+            print("ERROR:zWaveApi3.setDeviceCommand()", ex)
             return 0
+
+
+    def getLocations(self):
+        """
+        Get a list of all zWave Locations (Rooms)
+
+        :return: JSON Object of zWave Locations (Rooms)
+        :rtype: JSON Object
+        """
+
+        # Double check login
+        if (self.__zlogin_cookie == ''):
+            self.__DoLogin()
+
+        try:
+            if (self.__zlogin_cookie == ''):
+                raise ValueError('Login Failed')
+            # Do Lookup
+            webheaders = {'Content-type': 'application/json', "Accept": "application/json", "Cookie": "ZWAYSession="+self.__zlogin_cookie}
+            webconn = http.client.HTTPConnection(self.__strServer)
+            webconn.request("GET", self.__strServerPath+'locations', '', webheaders)
+            webresponse = webconn.getresponse()
+            webdata = webresponse.read()
+            webconn.close()
+            json_obj = json.loads(webdata.decode())
+            # Limit the data to only the important parts
+            keys_to_extract = ["id", "title", "main_sensors"]
+            filtered_data = []
+            for item in json_obj['data']:
+                if isinstance(item, dict):
+                    filtered_item = {k: item.get(k, None) for k in keys_to_extract}
+                    filtered_data.append(filtered_item)
+            return filtered_data
+        except Exception as ex:
+            print("ERROR:zWaveApi3.getLocations()", ex)
+        return []
