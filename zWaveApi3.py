@@ -18,12 +18,13 @@ class zWaveApi3(object):
         zPassword - password for API
         zBaseUrl  - full url for the ZAutomation api path
     """
-    zlogin_cookie = ''
-    zlogin_username = ''
-    zlogin_password = ''
-    zlogin_apibaseURL = 'http://localhost:8083/ZAutomation/api/v1/'
-    strServer = 'localhost:8083'
-    strServerPath = ''
+    
+    __zlogin_cookie = ''
+    __zlogin_username = ''
+    __zlogin_password = ''
+    __zlogin_apibaseURL = 'http://localhost:8083/ZAutomation/api/v1/'
+    __strServer = 'localhost:8083'
+    __strServerPath = ''
 
 
     def __init__(self, zUsername, zPassword, zBaseUrl):
@@ -37,12 +38,13 @@ class zWaveApi3(object):
         :param zBaseUrl: full url for the ZAutomation api path
         :type zBaseUrl: string
         """
-        self.zlogin_username = zUsername
-        self.zlogin_password = zPassword
-        self.zlogin_apibaseURL = zBaseUrl
-        self.strServer = self.zlogin_apibaseURL.replace('http://', '')
-        self.strServer = self.strServer[:self.strServer.index('/')]
-        self.strServerPath = self.zlogin_apibaseURL.replace('http://'+self.strServer,'')
+
+        self.__zlogin_username = zUsername
+        self.__zlogin_password = zPassword
+        self.__zlogin_apibaseURL = zBaseUrl
+        self.__strServer = self.__zlogin_apibaseURL.replace('http://', '')
+        self.__strServer = self.__strServer[:self.__strServer.index('/')]
+        self.__strServerPath = self.__zlogin_apibaseURL.replace('http://'+self.__strServer,'')
 
 
     def __DoLogin(self):
@@ -55,20 +57,20 @@ class zWaveApi3(object):
         """
 
         try:
-            post_login = json.dumps({'form': True, 'login': self.zlogin_username, 'password': self.zlogin_password, 'keepme': False, 'default_ui': 1})
+            post_login = json.dumps({'form': True, 'login': self.__zlogin_username, 'password': self.__zlogin_password, 'keepme': False, 'default_ui': 1})
             webheaders = {"Content-type": "application/json", "Accept": "application/json"}
-            webconn = http.client.HTTPConnection(self.strServer)
-            webconn.request("POST", self.strServerPath+'login', body=post_login.encode(), headers=webheaders, encode_chunked=False)
+            webconn = http.client.HTTPConnection(self.__strServer)
+            webconn.request("POST", self.__strServerPath+'login', body=post_login.encode(), headers=webheaders, encode_chunked=False)
             webresponse = webconn.getresponse()
             webresponseCookie = webresponse.getheader('set-cookie') # ['ZWAYSession']
             webresponseCookie = webresponseCookie.replace(' ','')
             webresponseCookie = webresponseCookie[webresponseCookie.index('ZWAYSession='):].replace('ZWAYSession=','')
             webresponseCookie = webresponseCookie[:webresponseCookie.index(';')]
-            self.zlogin_cookie = webresponseCookie
+            self.__zlogin_cookie = webresponseCookie
             webconn.close()
             return webresponse.status
         except:
-            self.zlogin_cookie == ''
+            self.__zlogin_cookie == ''
             return 0
 
 
@@ -81,15 +83,15 @@ class zWaveApi3(object):
         """
 
         # Double check login
-        if (self.zlogin_cookie == ''):
+        if (self.__zlogin_cookie == ''):
             self.__DoLogin()
 
         try:
-            if (self.zlogin_cookie == ''):
+            if (self.__zlogin_cookie == ''):
                 raise ValueError('Login Failed')
-            webheaders = {'Content-type': 'application/json', "Accept": "application/json", "Cookie": "ZWAYSession="+self.zlogin_cookie}
-            webconn = http.client.HTTPConnection(self.strServer)
-            webconn.request("GET", self.strServerPath+'devices?since=0', '', webheaders)
+            webheaders = {'Content-type': 'application/json', "Accept": "application/json", "Cookie": "ZWAYSession="+self.__zlogin_cookie}
+            webconn = http.client.HTTPConnection(self.__strServer)
+            webconn.request("GET", self.__strServerPath+'devices?since=0', '', webheaders)
             webresponse = webconn.getresponse()
             webdata = webresponse.read()
             webconn.close()
@@ -121,7 +123,7 @@ class zWaveApi3(object):
         """
 
         # Double check login
-        if (self.zlogin_cookie == ''):
+        if (self.__zlogin_cookie == ''):
             self.__DoLogin()
 
         # Check inputs
@@ -132,11 +134,11 @@ class zWaveApi3(object):
 
         # Do Command
         try:
-            if (self.zlogin_cookie == ''):
+            if (self.__zlogin_cookie == ''):
                 raise ValueError('Login Failed')
-            webheaders = {'Content-type': 'application/json', "Accept": "application/json", "Cookie": "ZWAYSession="+self.zlogin_cookie}
-            webconn = http.client.HTTPConnection(self.strServer)
-            webconn.request("GET", self.strServerPath+'devices/'+deviceid+'/command/'+newcommand, '', webheaders)
+            webheaders = {'Content-type': 'application/json', "Accept": "application/json", "Cookie": "ZWAYSession="+self.__zlogin_cookie}
+            webconn = http.client.HTTPConnection(self.__strServer)
+            webconn.request("GET", self.__strServerPath+'devices/'+deviceid+'/command/'+newcommand, '', webheaders)
             webresponse = webconn.getresponse()
             webdata = webresponse.read()
             webconn.close()
