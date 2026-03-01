@@ -40,11 +40,11 @@ oZDevices = oZWave.getDevices()
 
 ## Functions
 
-### getDevices()
+### `getDevices()`
 
 Returns a list of zWave Devices as a JSON array
 
-### setDeviceCommand(deviceid, newcommand)
+### `setDeviceCommand(deviceid, newcommand)`
 
 Sends a Command to a zWave Device
 
@@ -56,3 +56,17 @@ Sends a Command to a zWave Device
   * toggleButton     : on
 
 **Returns** either 1 or 0 dependant on command being accepted
+
+### `getLocations`
+
+Returns a list of zWave Locations (Rooms) as a DICT list
+
+```python
+[
+  {
+    "id": 1,
+    "title": "Bedroom",
+    "main_sensors": []
+  }
+]
+```
